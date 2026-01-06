@@ -1,42 +1,56 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
+import HomePage from "./pages/home/HomePage";
+import { Routes, Route } from "react-router";
+import OrdersPage from "./pages/orders/OrdersPage";
+import CheckoutPage from "./pages/checkout/CheckoutPage";
+import TrackingPage from "./pages/TrackingPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+// This makes axios available in the Console.
+// - Then, you can try running axios.post('/api/reset') in the Console.
+window.axios = axios;
+
+// More details:
+// - Normally, we can't access values (like axios) outside of a file.
+// - However, JavaScript has a built-in, global object called window
+//   (this represents the browser window).
+// - So one way to make a value accessible anywhere (including in the
+//   Console), is to attach it to the window object. That's why we
+//   do window.axios = axios;
+// - Now, in the Console, we can run window.axios.post(...)
+// - And JavaScript has another shortcut we can use. If we just type
+//   "axios", this is a shortcut for "window.axios"
+// - That's why the code window.axios = axios; lets us use "axios"
+//   anywhere (including in the Conosle).
 
 function App() {
-  const [count, setCount] = useState(0)
-  count.toLowerCase();
+  const [cart, setCart] = useState([]);
 
-  const message: string = 'hello';
-  console.log(message);
-  
-  message.toLowerCase();
-  message.toFixed();
+  const loadCart = async () => {
+    const response = await axios.get(
+      "http://localhost:3000/api/cart-items?expand=product"
+    );
+    setCart(response.data);
+  };
+
+  useEffect(() => {
+    loadCart();
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Routes>
+      <Route index element={<HomePage cart={cart} loadCart={loadCart} />} />
+      <Route path="checkout" element={<CheckoutPage cart={cart} loadCart={loadCart} />} />
+      <Route path="orders" element={<OrdersPage cart={cart} loadCart={loadCart} />}  />
+      <Route
+        path="tracking/:orderId/:productId"
+        element={<TrackingPage cart={cart} />}
+      />
+      <Route path="*" element={<NotFoundPage cart={cart} />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
